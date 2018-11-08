@@ -1,36 +1,39 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../bower_components/polymer/lib/utils/render-status.html">
+<link rel="import" href="./simple-carousel-arrow.html">
 
 <dom-module id="simple-carousel">
   <template>
     <style>
       :host {
         display: block;
+        position: relative;
 
         --simple-carousel-image-height: 100px;
         --simple-carousel-active-image-height: 300px;
       }
 
-      .images {
-        display: flex;
+      .images-container {
         overflow: hidden;
+        display: flex;
         align-items: center;
         position: relative;
         height: var(--simple-carousel-active-image-height);
       }
 
-      .images img + img {
+      .image + .image {
         margin-left: 10px;
       }
 
-      .images img {
+      .image {
         max-width: var(--simple-carousel-image-width);
-        max-height: var(--simple-carousel-image-height);
-        transition: max-height .1s ease-in-out;
+        height: var(--simple-carousel-image-height);
+        transition: height .1s ease-in-out;
       }
 
-      .images img[active] {
-        max-height: var(--simple-carousel-active-image-height);
+      .image[active] {
+        height: var(--simple-carousel-active-image-height);
       }
 
       .buttons {
@@ -42,19 +45,75 @@
       .buttons button + button {
         margin-left: 5px;
       }
+
+      .mobile-controls {
+        display: none;
+      }
+
+      @media screen and (max-width: 768px) {
+        .desktop-controls {
+          display: none;
+        }
+
+        .mobile-controls {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          border: 0;
+          outline: none;
+          z-index: 1;
+          cursor: pointer;
+          background: rgba(255, 255, 255, 0.3);
+          padding: 10px;
+          border-radius: 50%;
+          width: 80px;
+          height: 80px;
+          fill: #192a56;
+        }
+
+        .arrow-right {
+          right: 0;
+        }
+
+        .arrow-left .arrow {
+          transform: rotate(180deg);
+        }
+
+        .image {
+          visibility: hidden;
+        }
+
+        .image[active] {
+          visibility: visible;
+        }
+      }
     </style>
 
-    <div id="images" class="images">
+    <button class="mobile-controls arrow-left" on-click="prev">
+      <simple-carousel-arrow class="arrow">
+      </simple-carousel-arrow>
+    </button>
+
+    <div id="imagesContainer" class="images-container">
       <template is="dom-repeat" items="[[images]]" as="image">
         <img
           src="[[image.src]]"
+          class="image"
           alt=""
           active$="[[_isImageActive(index, activeIndex)]]"
           >
       </template>
     </div>
 
-    <div class="buttons">
+    <button class="mobile-controls arrow-right" on-click="next">
+      <simple-carousel-arrow class="arrow">
+      </simple-carousel-arrow>
+    </button>
+
+    <div class="buttons desktop-controls">
       <button on-click="prev">prev</button>
       <button on-click="next">next</button>
     </div>
@@ -96,6 +155,22 @@
           this._setWidth();
         }
 
+        prev() {
+          if (this.activeIndex <= 0) {
+            this.activeIndex = this.images.length - 1;
+          } else {
+            this.activeIndex--;
+          }
+        }
+
+        next() {
+          if (this.activeIndex >= this.images.length - 1) {
+            this.activeIndex = 0;
+          } else {
+            this.activeIndex++;
+          }
+        }
+
         _setWidth() {
           let width;
           if (window.ShadyCSS) {
@@ -115,32 +190,19 @@
           return index === activeIndex;
         }
 
-        prev() {
-          if (this.activeIndex <= 0) {
-            this.activeIndex = this.images.length - 1;
-          } else {
-            this.activeIndex--;
-          }
-        }
-
-        next() {
-          if (this.activeIndex >= this.images.length - 1) {
-            this.activeIndex = 0;
-          } else {
-            this.activeIndex++;
-          }
+        _getMargin(image) {
+          return (this.$.imagesContainer.getBoundingClientRect().width - image.getBoundingClientRect().width) / 2;
         }
 
         _activeChanged() {
-          const activeImage = this.shadowRoot.querySelector('img[active]');
+          const activeImage = this.shadowRoot.querySelector('.image[active]');
 
           if (!activeImage) {
             return;
           }
 
           const transitionEndCallback = () => {
-            const margin = (this.$.images.getBoundingClientRect().width - activeImage.getBoundingClientRect().width) / 2;
-            this.$.images.scrollLeft = activeImage.offsetLeft - margin;
+            this.$.imagesContainer.scrollLeft = activeImage.offsetLeft - this._getMargin(activeImage);
 
             activeImage.removeEventListener('transitionend', transitionEndCallback);
           };
