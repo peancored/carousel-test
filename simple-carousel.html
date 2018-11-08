@@ -5,8 +5,58 @@
     <style>
       :host {
         display: block;
+
+        --simple-carousel-image-height: 100px;
+        --simple-carousel-active-image-height: 300px;
+      }
+
+      .images {
+        display: flex;
+        overflow: hidden;
+        align-items: center;
+        position: relative;
+        height: var(--simple-carousel-active-image-height);
+      }
+
+      .images img + img {
+        margin-left: 10px;
+      }
+
+      .images img {
+        max-width: var(--simple-carousel-image-width);
+        max-height: var(--simple-carousel-image-height);
+        transition: max-height .1s ease-in-out;
+      }
+
+      .images img[active] {
+        max-height: var(--simple-carousel-active-image-height);
+      }
+
+      .buttons {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+      }
+
+      .buttons button + button {
+        margin-left: 5px;
       }
     </style>
+
+    <div id="images" class="images">
+      <template is="dom-repeat" items="[[images]]" as="image">
+        <img
+          src="[[image.src]]"
+          alt=""
+          active$="[[_isImageActive(index, activeIndex)]]"
+          >
+      </template>
+    </div>
+
+    <div class="buttons">
+      <button on-click="prev">prev</button>
+      <button on-click="next">next</button>
+    </div>
   </template>
 
   <script>
@@ -29,8 +79,75 @@
             images: {
               type: Array,
               value: () => []
+            },
+
+            activeIndex: {
+              type: Number,
+              value: 0,
+              observer: '_activeChanged'
             }
           };
+        }
+
+        connectedCallback() {
+          super.connectedCallback();
+
+          this._setWidth();
+        }
+
+        _setWidth() {
+          let width;
+          if (window.ShadyCSS) {
+            width = window.ShadyCSS.getComputedStyleValue(this, '--simple-carousel-image-width');
+          } else {
+            width = getComputedStyle(this).getPropertyValue('--simple-carousel-image-width');
+          }
+
+          if (!width) {
+            this.updateStyles({
+              '--simple-carousel-image-width': `${this.clientWidth}px`
+            });
+          }
+        }
+
+        _isImageActive(index, activeIndex) {
+          return index === activeIndex;
+        }
+
+        prev() {
+          if (this.activeIndex <= 0) {
+            this.activeIndex = this.images.length - 1;
+          } else {
+            this.activeIndex--;
+          }
+        }
+
+        next() {
+          if (this.activeIndex >= this.images.length - 1) {
+            this.activeIndex = 0;
+          } else {
+            this.activeIndex++;
+          }
+        }
+
+        _activeChanged() {
+          const activeImage = this.shadowRoot.querySelector('img[active]');
+
+          if (!activeImage) {
+            return;
+          }
+
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            const transitionEndCallback = () => {
+              const margin = (this.$.images.getBoundingClientRect().width - activeImage.getBoundingClientRect().width) / 2;
+              this.$.images.scrollLeft = activeImage.offsetLeft - margin;
+
+              activeImage.removeEventListener('transitionend', transitionEndCallback);
+            };
+
+            activeImage.addEventListener('transitionend', transitionEndCallback);
+          });
+
         }
       }
 
