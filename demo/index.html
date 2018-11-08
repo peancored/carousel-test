@@ -29,6 +29,23 @@
         <template>
           <simple-carousel images="[[images]]"></simple-carousel>
         </template>
+
+        <script>
+          const carousel = document.querySelector('simple-carousel');
+
+          fetch(
+            'https://pixabay.com/api/?key=9656065-a4094594c34f9ac14c7fc4c39&q=beautiful+landscape&image_type=photo&per_page=5',
+            {
+              method: 'GET'
+            })
+            .then(res => res.json())
+            .then(data => {
+              carousel.images = data.hits.map((hit, index) => ({
+                src: hit.largeImageURL,
+                title: `Image ${index} title`
+              }));
+            });
+        </script>
       </demo-snippet>
     </div>
   </body>
