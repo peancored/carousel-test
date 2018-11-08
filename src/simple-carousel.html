@@ -1,4 +1,5 @@
-<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 
 <dom-module id="simple-carousel">
   <template>
@@ -137,16 +138,14 @@
             return;
           }
 
-          Polymer.RenderStatus.afterNextRender(this, () => {
-            const transitionEndCallback = () => {
-              const margin = (this.$.images.getBoundingClientRect().width - activeImage.getBoundingClientRect().width) / 2;
-              this.$.images.scrollLeft = activeImage.offsetLeft - margin;
+          const transitionEndCallback = () => {
+            const margin = (this.$.images.getBoundingClientRect().width - activeImage.getBoundingClientRect().width) / 2;
+            this.$.images.scrollLeft = activeImage.offsetLeft - margin;
 
-              activeImage.removeEventListener('transitionend', transitionEndCallback);
-            };
+            activeImage.removeEventListener('transitionend', transitionEndCallback);
+          };
 
-            activeImage.addEventListener('transitionend', transitionEndCallback);
-          });
+          activeImage.addEventListener('transitionend', transitionEndCallback);
 
         }
       }

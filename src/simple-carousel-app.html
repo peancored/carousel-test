@@ -1,0 +1,60 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="./simple-carousel.html">
+
+<dom-module id="simple-carousel-app">
+  <template>
+    <style>
+      simple-carousel {
+        font-family: 'Ropa Sans', sans-serif;
+      }
+    </style>
+
+    <simple-carousel images="[[images]]"></simple-carousel>
+  </template>
+
+  <script>
+    (function() {
+      /**
+       * @extends Polymer.Element
+       */
+      class SimpleCarouselApp extends Polymer.Element {
+        static get is() {
+          return 'simple-carousel-app';
+        }
+
+        static get properties() {
+          return {
+            images: {
+              type: Array,
+              value: () => []
+            }
+          };
+        }
+
+        connectedCallback() {
+          super.connectedCallback();
+
+          this._fetchImages();
+        }
+
+        _fetchImages() {
+          fetch(
+            'https://pixabay.com/api/?key=9656065-a4094594c34f9ac14c7fc4c39&q=beautiful+landscape&image_type=photo&per_page=5',
+            {
+              method: 'GET'
+            })
+            .then(res => res.json())
+            .then(data => {
+              this.set('images', data.hits.map((hit, index) => ({
+                src: hit.largeImageURL,
+                title: `Image ${index} title`
+              })));
+            });
+        }
+      }
+
+      customElements.define(SimpleCarouselApp.is, SimpleCarouselApp);
+    })();
+  </script>
+
+</dom-module>
