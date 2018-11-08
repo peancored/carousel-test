@@ -1,0 +1,40 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="simple-carousel">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+  </template>
+
+  <script>
+    (function() {
+      /**
+       * `simple-carousel`
+       * Mobile-first carousel WebComponent that cycles through images
+       *
+       * @customElement
+       * @polymer
+       * @demo demo/index.html
+       */
+      class SimpleCarousel extends Polymer.Element {
+        static get is() {
+          return 'simple-carousel';
+        }
+
+        static get properties() {
+          return {
+            images: {
+              type: Array,
+              value: () => []
+            }
+          };
+        }
+      }
+
+      window.customElements.define(SimpleCarousel.is, SimpleCarousel);
+    })();
+  </script>
+</dom-module>
