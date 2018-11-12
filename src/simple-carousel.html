@@ -91,7 +91,7 @@
       }
     </style>
 
-    <button class="mobile-controls arrow-left" on-click="prev">
+    <button class="mobile-controls arrow-left" aria-label="Previous image" on-click="prev">
       <simple-carousel-arrow class="arrow">
       </simple-carousel-arrow>
     </button>
@@ -103,7 +103,6 @@
             src="[[image.src]]"
             class="image"
             style="background-image: url('[[image.src]]');"
-            alt=""
             active$="[[_isImageActive(index, activeIndex)]]"
             >
           </div>
@@ -111,14 +110,14 @@
       </div>
     </div>
 
-    <button class="mobile-controls arrow-right" on-click="next">
+    <button class="mobile-controls arrow-right" aria-label="Next image" on-click="next">
       <simple-carousel-arrow class="arrow">
       </simple-carousel-arrow>
     </button>
 
     <div class="buttons desktop-controls">
-      <button on-click="prev">prev</button>
-      <button on-click="next">next</button>
+      <button on-click="prev" aria-label="Previous image">prev</button>
+      <button on-click="next" aria-label="Next image">next</button>
     </div>
   </template>
 
