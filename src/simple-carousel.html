@@ -10,16 +10,21 @@
         display: block;
         position: relative;
 
-        --simple-carousel-image-height: 100px;
-        --simple-carousel-active-image-height: 300px;
+        --simple-carousel-image-height: 300px;
+        --simple-carousel-image-width: 600px;
       }
 
-      .images-container {
+      .carousel-container {
         overflow: hidden;
+        position: relative;
+        height: var(--simple-carousel-image-height);
+      }
+
+      .carousel {
+        position: absolute;
         display: flex;
         align-items: center;
-        position: relative;
-        height: var(--simple-carousel-active-image-height);
+        transition: left .1s ease-in-out;
       }
 
       .image + .image {
@@ -27,13 +32,11 @@
       }
 
       .image {
-        max-width: var(--simple-carousel-image-width);
+        width: var(--simple-carousel-image-width);
         height: var(--simple-carousel-image-height);
-        transition: height .1s ease-in-out;
-      }
-
-      .image[active] {
-        height: var(--simple-carousel-active-image-height);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
       }
 
       .buttons {
@@ -82,12 +85,8 @@
           transform: rotate(180deg);
         }
 
-        .image {
-          visibility: hidden;
-        }
-
-        .image[active] {
-          visibility: visible;
+        .image + .image {
+          margin-left: 0;
         }
       }
     </style>
@@ -97,15 +96,19 @@
       </simple-carousel-arrow>
     </button>
 
-    <div id="imagesContainer" class="images-container">
-      <template is="dom-repeat" items="[[images]]" as="image">
-        <img
-          src="[[image.src]]"
-          class="image"
-          alt=""
-          active$="[[_isImageActive(index, activeIndex)]]"
-          >
-      </template>
+    <div id="carouselContainer" class="carousel-container">
+      <div id="carousel" class="carousel">
+        <template is="dom-repeat" items="[[images]]" as="image">
+          <div
+            src="[[image.src]]"
+            class="image"
+            style="background-image: url('[[image.src]]');"
+            alt=""
+            active$="[[_isImageActive(index, activeIndex)]]"
+            >
+          </div>
+        </template>
+      </div>
     </div>
 
     <button class="mobile-controls arrow-right" on-click="next">
@@ -143,16 +146,16 @@
 
             activeIndex: {
               type: Number,
-              value: 0,
-              observer: '_activeChanged'
+              value: 0
             }
           };
         }
 
-        connectedCallback() {
-          super.connectedCallback();
-
-          this._setWidth();
+        static get observers() {
+          return [
+            '_activeChanged(activeIndex)',
+            '_imagesChanged(images)'
+          ];
         }
 
         prev() {
@@ -171,7 +174,11 @@
           }
         }
 
-        _setWidth() {
+        _isImageActive(index, activeIndex) {
+          return index === activeIndex;
+        }
+
+        _getMargin() {
           let width;
           if (window.ShadyCSS) {
             width = window.ShadyCSS.getComputedStyleValue(this, '--simple-carousel-image-width');
@@ -179,35 +186,31 @@
             width = getComputedStyle(this).getPropertyValue('--simple-carousel-image-width');
           }
 
-          if (!width) {
-            this.updateStyles({
-              '--simple-carousel-image-width': `${this.clientWidth}px`
-            });
-          }
+          return (this.$.carouselContainer.getBoundingClientRect().width - parseInt(width)) / 2;
         }
 
-        _isImageActive(index, activeIndex) {
-          return index === activeIndex;
-        }
-
-        _getMargin(image) {
-          return (this.$.imagesContainer.getBoundingClientRect().width - image.getBoundingClientRect().width) / 2;
-        }
-
-        _activeChanged() {
+        _setPosition() {
           const activeImage = this.shadowRoot.querySelector('.image[active]');
 
           if (!activeImage) {
             return;
           }
 
-          const transitionEndCallback = () => {
-            this.$.imagesContainer.scrollLeft = activeImage.offsetLeft - this._getMargin(activeImage);
+          this.$.carousel.style.left = `${this._getMargin() - activeImage.offsetLeft}px`;
+        }
 
-            activeImage.removeEventListener('transitionend', transitionEndCallback);
-          };
+        _activeChanged() {
+          this._setPosition();
+        }
 
-          activeImage.addEventListener('transitionend', transitionEndCallback);
+        _imagesChanged(images) {
+          if (this.activeIndex !== 0 || !images.length) {
+            return;
+          }
+
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            this._setPosition();
+          });
 
         }
       }
