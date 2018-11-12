@@ -138,11 +138,18 @@
 
         static get properties() {
           return {
+            /**
+             * Array of images in the following format:
+             * { src: 'src', title: 'title' }
+             */
             images: {
               type: Array,
               value: () => []
             },
 
+            /**
+             * Currently active image index
+             */
             activeIndex: {
               type: Number,
               value: 0
@@ -157,6 +164,10 @@
           ];
         }
 
+        /**
+         * Select the previous image.
+         * If the previous image index is less than 0, select the last image
+         */
         prev() {
           if (this.activeIndex <= 0) {
             this.activeIndex = this.images.length - 1;
@@ -165,6 +176,10 @@
           }
         }
 
+        /**
+         * Select the next image.
+         * If the next image index is more than the collection length, select the first image
+         */
         next() {
           if (this.activeIndex >= this.images.length - 1) {
             this.activeIndex = 0;
@@ -177,6 +192,9 @@
           return index === activeIndex;
         }
 
+        /**
+         * Get the offset to center the image.
+         */
         _getMargin() {
           let width;
           if (window.ShadyCSS) {
@@ -202,6 +220,9 @@
           this._setPosition();
         }
 
+        /**
+         * Initially center the first image.
+         */
         _imagesChanged(images) {
           if (this.activeIndex !== 0 || !images.length) {
             return;
